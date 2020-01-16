@@ -23,6 +23,8 @@ class UploadScreen extends StatefulWidget {
 class _HomeScreenState extends State<UploadScreen> {
   File tempFile;
 
+  bool isLoading = false;
+
   void _choose() async {
     //file = await ImagePicker.pickImage(source: ImageSource.camera);
     file = await ImagePicker.pickImage(source: ImageSource.gallery);
@@ -31,6 +33,43 @@ class _HomeScreenState extends State<UploadScreen> {
     });
   }
 
+  void _upload() {
+    if (file == null) return;
+    String base64Image = base64Encode(file.readAsBytesSync());
+    String fileName = file.path.split("/").last;
+
+    setState(() {
+      isLoading = true;
+    });
+  
+
+    http.post(phpEndPoint, body: {
+      "image": base64Image,
+      "name": fileName,
+    }).then((res) {
+      print(res.body);
+      setState(() {
+      tempFile = null;
+      file = null;
+
+      setState(() {
+      isLoading = false;
+    });
+    });
+    }).catchError((err) {
+      print(err);
+    });
+
+
+  }
+
+  Widget checkIfLoading() {
+    if (isLoading == true) {
+      return Center(child: CircularProgressIndicator());
+    } else {
+      return Center();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +93,7 @@ class _HomeScreenState extends State<UploadScreen> {
               )
             ],
           ),
+          checkIfLoading(),
           tempFile == null
             ? Text('No Image Selected') 
             : Image.file(tempFile)
@@ -64,19 +104,3 @@ class _HomeScreenState extends State<UploadScreen> {
 }
 
 
-void _upload() {
-  if (file == null) return;
-  String base64Image = base64Encode(file.readAsBytesSync());
-  String fileName = file.path.split("/").last;
-
-  http.post(phpEndPoint, body: {
-    "image": base64Image,
-    "name": fileName,
-  }).then((res) {
-    print("Uploaded file:" + fileName);
-  }).catchError((err) {
-    print(err);
-  });
-
-
-}
