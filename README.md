@@ -1,4 +1,4 @@
-# image_storage
+# Image Storage App
 
 A new Flutter project.
 
